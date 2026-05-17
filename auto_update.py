@@ -460,15 +460,17 @@ def generate_keypoints():
 
             lines = text.split('\n')
             for i, line in enumerate(lines):
-                if '主线' in line:
+                if '主线' in line or '赚钱效应' in line:
                     start = max(0, i - 1)
                     end = min(len(lines), i + 2)
                     excerpt = '\n'.join(lines[start:end]).strip()
                     if len(excerpt) > 10:
+                        tag = '主线' if '主线' in line else '赚钱效应'
                         keypoints.append({
                             'account': dirname,
                             'title': title or fname,
                             'excerpt': excerpt,
+                            'tag': tag,
                         })
                     break
 
@@ -476,18 +478,18 @@ def generate_keypoints():
     path = os.path.join(ROOT, f'{date_compact}.重点.txt')
 
     with open(path, 'w', encoding='utf-8') as f:
-        f.write(f'# {today.strftime("%Y-%m-%d")} 主线梳理\n')
+        f.write(f'# {today.strftime("%Y-%m-%d")} 盘面要点梳理\n')
         f.write(f'# 提取自最近3天公众号文章\n')
         f.write('\n')
         if not keypoints:
-            f.write('最近3天文章未提及"主线"\n')
+            f.write('最近3天文章未提及"主线"或"赚钱效应"\n')
         else:
             for kp in keypoints:
-                f.write(f'## [{kp["account"]}] {kp["title"]}\n')
+                f.write(f'## [{kp["tag"]}] [{kp["account"]}] {kp["title"]}\n')
                 f.write(f'{kp["excerpt"]}\n')
                 f.write('\n')
 
-    print(f'  [重点] 已生成 {os.path.basename(path)} ({len(keypoints)}条主线提及)')
+    print(f'  [重点] 已生成 {os.path.basename(path)} ({len(keypoints)}条主线/赚钱效应)')
     return path
 
 
