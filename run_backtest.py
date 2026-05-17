@@ -178,10 +178,11 @@ def get_prev_trading_day(price_df, date_str):
     return None
 
 # ========== 运行策略 ==========
-def run_strategy(signals, hold_days, name):
+def run_strategy(signals, hold_days, name, stop_loss_pct=None, stop_loss_realized_pct=None):
     trades = []
     skipped_limit_up = 0
     limit_down_delays = 0
+    stop_loss_hits = 0
     for s in signals:
         code = s['stock_code']
         date = s['date']
@@ -204,29 +205,52 @@ def run_strategy(signals, hold_days, name):
         if not sell_date or sell_date == buy_date:
             continue
 
-        # 如果卖出日跌停，延后到能卖出的交易日（最多5天）
-        extra_delay = 0
-        while extra_delay < 5 and is_limit_down(df, sell_date):
-            extra_delay += 1
-            next_sell = get_next_trading_day(df, sell_date)
-            if not next_sell:
-                break
-            sell_date = next_sell
-
-        if not sell_date or sell_date == buy_date:
-            continue
-        if extra_delay > 0:
-            limit_down_delays += 1
-
         buy_row = df[df['date'] == buy_date]
-        sell_row = df[df['date'] == sell_date]
-        if buy_row.empty or sell_row.empty:
+        if buy_row.empty:
             continue
         buy_price = buy_row['open'].values[0]
-        sell_price = sell_row['close'].values[0]
-        if pd.isna(buy_price) or pd.isna(sell_price) or buy_price == 0:
+        if pd.isna(buy_price) or buy_price == 0:
             continue
-        ret = (sell_price - buy_price) / buy_price
+
+        # 止损检查：持有期间日内最低价 <= 止损线
+        stop_loss_hit = False
+        if stop_loss_pct is not None:
+            holding = df[(df['date'] > buy_date) & (df['date'] <= sell_date)]
+            for _, row in holding.iterrows():
+                if pd.notna(row['low']) and row['low'] > 0:
+                    if (row['low'] / buy_price - 1) * 100 <= stop_loss_pct:
+                        stop_loss_hit = True
+                        sell_date = row['date']
+                        break
+
+        if stop_loss_hit:
+            stop_loss_hits += 1
+            ret = stop_loss_realized_pct / 100
+            sell_price = round(buy_price * (1 + ret), 2)
+            extra_delay = 0
+        else:
+            # 如果卖出日跌停，延后到能卖出的交易日（最多5天）
+            extra_delay = 0
+            while extra_delay < 5 and is_limit_down(df, sell_date):
+                extra_delay += 1
+                next_sell = get_next_trading_day(df, sell_date)
+                if not next_sell:
+                    break
+                sell_date = next_sell
+
+            if not sell_date or sell_date == buy_date:
+                continue
+            if extra_delay > 0:
+                limit_down_delays += 1
+
+            sell_row = df[df['date'] == sell_date]
+            if sell_row.empty:
+                continue
+            sell_price = sell_row['close'].values[0]
+            if pd.isna(sell_price) or sell_price == 0:
+                continue
+            ret = (sell_price - buy_price) / buy_price
+
         trades.append({
             'stock': s['stock_name'],
             'code': code,
@@ -237,10 +261,11 @@ def run_strategy(signals, hold_days, name):
             'sell_price': round(sell_price, 2),
             'return': round(ret * 100, 2),
             'limit_down_delay': extra_delay,
+            'stop_loss': stop_loss_hit,
         })
-    return trades, skipped_limit_up, limit_down_delays
+    return trades, skipped_limit_up, limit_down_delays, stop_loss_hits
 
-def print_stats(trades, label, skipped=0, delayed=0):
+def print_stats(trades, label, skipped=0, delayed=0, stopped=0):
     print()
     print('=' * 70)
     print(f'  {label}')
@@ -250,6 +275,8 @@ def print_stats(trades, label, skipped=0, delayed=0):
         print(f'涨停开盘买不到跳过: {skipped}次')
     if delayed:
         print(f'跌停收盘延迟卖出: {delayed}次')
+    if stopped:
+        print(f'止损触发: {stopped}次')
     if not trades:
         print('无交易')
         return
@@ -300,14 +327,22 @@ def print_stats(trades, label, skipped=0, delayed=0):
         mdd = dd.min() * 100
         print(f'  {y:>6} {len(rr):>6} {ww/len(rr)*100:>7.0f}% {rr.mean():>7.2f}% {rr.sum():>9.2f}% {mdd:>9.2f}%')
 
-# ========== 运行三个策略 ==========
-trades_1, skipped_1, delayed_1 = run_strategy(signals, 1, '隔日')
-trades_2, skipped_2, delayed_2 = run_strategy(signals, 3, '持3日')
-trades_3, skipped_3, delayed_3 = run_strategy(signals, 5, '持5日')
+# ========== 运行策略（原始 + 止损版） ==========
+trades_1, skipped_1, delayed_1, stopped_1 = run_strategy(signals, 1, '隔日')
+trades_2, skipped_2, delayed_2, stopped_2 = run_strategy(signals, 3, '持3日')
+trades_3, skipped_3, delayed_3, stopped_3 = run_strategy(signals, 5, '持5日')
 
-print_stats(trades_1, '策略1: 隔日超短（信号次日开盘买，再次日收盘卖）', skipped_1, delayed_1)
-print_stats(trades_2, '策略2: 持有3个交易日', skipped_2, delayed_2)
-print_stats(trades_3, '策略3: 持有5个交易日', skipped_3, delayed_3)
+trades_1_sl, skipped_1_sl, delayed_1_sl, stopped_1_sl = run_strategy(signals, 1, '隔日+止损', stop_loss_pct=-5, stop_loss_realized_pct=-6)
+trades_2_sl, skipped_2_sl, delayed_2_sl, stopped_2_sl = run_strategy(signals, 3, '持3日+止损', stop_loss_pct=-5, stop_loss_realized_pct=-6)
+trades_3_sl, skipped_3_sl, delayed_3_sl, stopped_3_sl = run_strategy(signals, 5, '持5日+止损', stop_loss_pct=-5, stop_loss_realized_pct=-6)
+
+print_stats(trades_1, '策略1: 隔日超短（信号次日开盘买，再次日收盘卖）', skipped_1, delayed_1, stopped_1)
+print_stats(trades_2, '策略2: 持有3个交易日', skipped_2, delayed_2, stopped_2)
+print_stats(trades_3, '策略3: 持有5个交易日', skipped_3, delayed_3, stopped_3)
+
+print_stats(trades_1_sl, '策略4: 隔日+止损-5%（实算-6%）', skipped_1_sl, delayed_1_sl, stopped_1_sl)
+print_stats(trades_2_sl, '策略5: 持3日+止损-5%（实算-6%）', skipped_2_sl, delayed_2_sl, stopped_2_sl)
+print_stats(trades_3_sl, '策略6: 持5日+止损-5%（实算-6%）', skipped_3_sl, delayed_3_sl, stopped_3_sl)
 
 # ========== 按月统计 ==========
 print()
@@ -322,6 +357,22 @@ if trades_1:
     print(f'  {"月份":>8} {"笔数":>6} {"胜率":>8} {"平均":>8} {"累计":>10}')
     for ym in sorted(monthly):
         rr = np.array(monthly[ym])
+        ww = sum(rr > 0)
+        print(f'  {ym:>8} {len(rr):>6} {ww/len(rr)*100:>7.0f}% {rr.mean():>7.2f}% {rr.sum():>9.2f}%')
+
+# ========== 按月统计（止损版） ==========
+print()
+print('=' * 70)
+print('  月度收益明细（策略4: 隔日+止损）')
+print('=' * 70)
+if trades_1_sl:
+    monthly_sl = defaultdict(list)
+    for t in trades_1_sl:
+        ym = t['buy_date'][:7]
+        monthly_sl[ym].append(t['return'])
+    print(f'  {"月份":>8} {"笔数":>6} {"胜率":>8} {"平均":>8} {"累计":>10}')
+    for ym in sorted(monthly_sl):
+        rr = np.array(monthly_sl[ym])
         ww = sum(rr > 0)
         print(f'  {ym:>8} {len(rr):>6} {ww/len(rr)*100:>7.0f}% {rr.mean():>7.2f}% {rr.sum():>9.2f}%')
 
@@ -346,7 +397,10 @@ if trades_1:
 output = {
     'strategy_1day': trades_1,
     'strategy_3day': trades_2,
-    'strategy_5day': trades_3
+    'strategy_5day': trades_3,
+    'strategy_1day_stop_loss': trades_1_sl,
+    'strategy_3day_stop_loss': trades_2_sl,
+    'strategy_5day_stop_loss': trades_3_sl,
 }
 with open(r'D:/杰哥复盘数据/backtest_trades.json', 'w', encoding='utf-8') as f:
     json.dump(output, f, ensure_ascii=False)

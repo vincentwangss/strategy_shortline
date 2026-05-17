@@ -1,0 +1,398 @@
+"""
+每日自动更新：微信公众号文章下载 + 信号提取 + 回测 + 持仓报告
+===============================================================
+
+原理：用 Playwright 访问公众号历史文章页，获取最新文章URL并下载。
+首次运行需扫码登录微信，后续自动复用会话。
+
+用法:
+  python auto_update.py              # 正常运行（自动下载新文章+跑管道）
+  python auto_update.py --sync-only   # 只同步已有工具下载，不启动浏览器
+  python auto_update.py --re-login    # 重新扫码登录
+  python auto_update.py --pipeline    # 只跑管道（不下载）
+"""
+
+import asyncio, os, re, sys, json, subprocess
+from datetime import datetime
+from bs4 import BeautifulSoup
+
+ROOT = r'D:/杰哥复盘数据'
+STATE_FILE = os.path.join(ROOT, '.playwright_state')
+DOWNLOADED_URLS = os.path.join(ROOT, '.downloaded_urls.json')
+TOOL_DIR = r'D:/project/duanxian/tools/下载'
+
+ACCOUNTS = {
+    '短线杰哥擒龙': {'biz': 'MzIxMjMxNDUzOQ=='},
+    '杰哥擒龙收评': {'biz': 'MzA3NTQyNTM3NQ=='},
+}
+
+HEADERS = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/125.0.0.0 Safari/537.36',
+}
+
+# ========== 已下载URL管理 ==========
+
+def get_downloaded_urls():
+    if os.path.exists(DOWNLOADED_URLS):
+        with open(DOWNLOADED_URLS, 'r', encoding='utf-8') as f:
+            return set(json.load(f))
+    return set()
+
+def mark_downloaded(url):
+    urls = get_downloaded_urls()
+    urls.add(url)
+    with open(DOWNLOADED_URLS, 'w', encoding='utf-8') as f:
+        json.dump(list(urls), f, ensure_ascii=False)
+
+# ========== 文章处理 ==========
+
+def extract_article_info(html, source=''):
+    soup = BeautifulSoup(html, 'html.parser')
+    title = ''
+    og_title = soup.find('meta', property='og:title')
+    if og_title and og_title.get('content'):
+        title = og_title['content'].strip()
+    if not title:
+        h1 = soup.find('h1')
+        if h1:
+            title = h1.get_text().strip()
+    if not title:
+        title_tag = soup.find('title')
+        if title_tag:
+            title = re.sub(r'\s+', ' ', title_tag.get_text().strip()).strip()
+
+    date_compact = ''
+    ct_match = re.search(r'var\s+ct\s*=\s*["\'](\d+)["\']', html)
+    if ct_match:
+        dt = datetime.fromtimestamp(int(ct_match.group(1)))
+        date_compact = dt.strftime('%Y%m%d')
+    if not date_compact:
+        ts_match = re.search(r'timestamp=(\d{10})', html)
+        if ts_match:
+            dt = datetime.fromtimestamp(int(ts_match.group(1)))
+            date_compact = dt.strftime('%Y%m%d')
+
+    biz = ''
+    biz_match = re.search(r'__biz=([^&"\']+)', html)
+    if biz_match:
+        biz = biz_match.group(1).strip()
+
+    is_verify = ('secitptpage/verify' in html[:5000] or '请确认' in html[:5000])
+    has_content = bool(soup.find('div', class_='rich_media_content') or
+                       soup.find(id='js_content'))
+
+    return {'title': title, 'date': date_compact, 'biz': biz,
+            'is_verify': is_verify, 'has_content': has_content}
+
+
+def detect_dir(info):
+    if info['biz']:
+        for name, a in ACCOUNTS.items():
+            if info['biz'] == a['biz']:
+                return os.path.join(ROOT, name)
+    unknown = os.path.join(ROOT, 'other_articles')
+    os.makedirs(unknown, exist_ok=True)
+    return unknown
+
+
+def make_filename(date_compact, title):
+    clean = re.sub(r'[\\/:*?"<>|]', '', title).strip()
+    if not clean:
+        clean = '无标题'
+    if len(clean) > 60:
+        clean = clean[:60]
+    mmdd = date_compact[4:8] if len(date_compact) >= 8 else date_compact
+    return f'{date_compact}_{mmdd}{clean}.html'
+
+
+def save_html(html, info):
+    target_dir = detect_dir(info)
+    os.makedirs(target_dir, exist_ok=True)
+    filename = make_filename(info['date'], info['title'])
+    filepath = os.path.join(target_dir, filename)
+    if os.path.exists(filepath):
+        base, ext = os.path.splitext(filename)
+        for i in range(2, 100):
+            filepath = os.path.join(target_dir, f'{base}_{i}{ext}')
+            if not os.path.exists(filepath):
+                break
+    with open(filepath, 'w', encoding='utf-8') as f:
+        f.write(html)
+    return filepath
+
+# ========== 从历史文章页获取URL列表 ==========
+
+async def get_article_urls_from_history(page, biz):
+    """从公众号历史文章页提取所有文章URL"""
+    url = f'https://mp.weixin.qq.com/mp/profile_ext?action=home&__biz={biz}&scene=124#wechat_redirect'
+    await page.goto(url, wait_until='domcontentloaded', timeout=30000)
+    await page.wait_for_timeout(5000)
+
+    # 检查是否需要登录
+    content = await page.content()
+    if '请点击确认' in content[:3000] or '二维码' in content[:3000]:
+        print('  [需要扫码登录] 请在浏览器中扫描二维码...')
+        await page.wait_for_timeout(30000)  # 等待30秒扫码
+        await page.wait_for_timeout(3000)
+
+    # 滚动加载更多文章
+    print('  [加载文章列表] 滚动加载中...')
+    for i in range(5):
+        await page.evaluate('window.scrollTo(0, document.body.scrollHeight)')
+        await page.wait_for_timeout(2000)
+
+    # 提取文章链接
+    content = await page.content()
+    soup = BeautifulSoup(content, 'html.parser')
+    links = set()
+    for a_tag in soup.find_all('a', href=True):
+        href = a_tag['href']
+        if '__biz=' in href and 'mid=' in href:
+            full_url = href if href.startswith('http') else 'https://mp.weixin.qq.com' + href
+            links.add(full_url)
+
+    return list(links)
+
+
+async def download_article(page, url):
+    """下载单篇文章"""
+    try:
+        await page.goto(url, wait_until='domcontentloaded', timeout=30000)
+        try:
+            await page.wait_for_selector('.rich_media_content, #js_content', timeout=15000)
+        except:
+            pass
+        await page.wait_for_timeout(2000)
+        html = await page.content()
+        return html
+    except Exception as e:
+        print(f'    [失败] {e}')
+        return None
+
+
+async def run_browser_download():
+    """主流程：打开浏览器下载新文章"""
+    from playwright.async_api import async_playwright
+
+    existing = get_downloaded_urls()
+    new_count = 0
+
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(headless=False)
+        context = await browser.new_context(viewport={'width': 1280, 'height': 800}, user_agent=HEADERS['User-Agent'])
+
+        # 恢复保存的登录状态
+        if os.path.exists(STATE_FILE) and '--re-login' not in sys.argv:
+            try:
+                with open(STATE_FILE, 'r', encoding='utf-8') as f:
+                    state = json.load(f)
+                await context.add_cookies(state.get('cookies', []))
+                print('[复用上次登录状态]')
+            except:
+                print('[状态文件损坏，需要重新登录]')
+        else:
+            print('[首次运行或重新登录]')
+
+        page = await context.new_page()
+
+        for name, info in ACCOUNTS.items():
+            print(f'\n{name}:')
+            try:
+                urls = await get_article_urls_from_history(page, info['biz'])
+            except Exception as e:
+                print(f'  [获取文章列表失败] {e}')
+                continue
+
+            print(f'  找到 {len(urls)} 篇文章')
+
+            # 过滤未下载的
+            new_urls = [u for u in urls if u not in existing]
+            print(f'  新文章: {len(new_urls)} 篇')
+
+            for url in new_urls:
+                print(f'  下载: {url[:60]}...', end=' ')
+                html = await download_article(page, url)
+                if not html:
+                    print('[跳过]')
+                    continue
+
+                info = extract_article_info(html, url)
+                if info.get('is_verify') or not info.get('has_content') or not info['title']:
+                    print('[内容无效]')
+                    continue
+
+                filepath = save_html(html, info)
+                mark_downloaded(url)
+                print(f'OK → {os.path.basename(filepath)}')
+                new_count += 1
+
+        # 保存登录状态
+        state = {
+            'cookies': await context.cookies(),
+            'timestamp': datetime.now().isoformat(),
+        }
+        with open(STATE_FILE, 'w', encoding='utf-8') as f:
+            json.dump(state, f, ensure_ascii=False)
+        print(f'\n[登录状态已保存]')
+
+        await browser.close()
+
+    return new_count
+
+# ========== 从工具目录同步 ==========
+
+def sync_from_tool():
+    """从微信公众号批量下载工具目录同步新文章"""
+    tool_accounts = {
+        '短线杰哥擒龙': os.path.join(TOOL_DIR, '短线杰哥擒龙'),
+        '杰哥擒龙收评': os.path.join(TOOL_DIR, '杰哥擒龙收评'),
+    }
+
+    total = 0
+    for name, tool_dir in tool_accounts.items():
+        if not os.path.exists(tool_dir):
+            continue
+        repo_dir = os.path.join(ROOT, name)
+        os.makedirs(repo_dir, exist_ok=True)
+
+        # 已存在的日期
+        existing_dates = set()
+        for fname in os.listdir(repo_dir):
+            m = re.match(r'(\d{8})', fname)
+            if m:
+                existing_dates.add(m.group(1))
+
+        copied = 0
+        for fname in sorted(os.listdir(tool_dir)):
+            if not fname.endswith('.html'):
+                continue
+            m = re.match(r'\[(\d{8})\d{4}\](.+)\.html$', fname)
+            if not m:
+                continue
+            article_date = m.group(1)
+            if article_date in existing_dates:
+                continue
+
+            title = m.group(2)
+            src = os.path.join(tool_dir, fname)
+            mmdd = article_date[4:8]
+            clean_title = re.sub(r'[\\/:*?"<>|]', '', title)[:60]
+            new_fname = f'{article_date}_{mmdd}{clean_title}.html'
+            dst = os.path.join(repo_dir, new_fname)
+            if os.path.exists(dst):
+                continue
+
+            import shutil
+            shutil.copy2(src, dst)
+            print(f'  [同步] {new_fname}')
+            copied += 1
+
+        if copied:
+            print(f'  {name}: {copied} 篇')
+        total += copied
+
+    return total
+
+# ========== 管道 ==========
+
+def run_pipeline():
+    print('\n' + '=' * 50)
+    print('  提取信号...')
+    print('=' * 50)
+    extract_script = os.path.join(ROOT, 'extract_signals.py')
+    if os.path.exists(extract_script):
+        subprocess.run([sys.executable, extract_script], cwd=ROOT)
+
+    print('\n' + '=' * 50)
+    print('  运行回测...')
+    print('=' * 50)
+    backtest_script = os.path.join(ROOT, 'run_backtest.py')
+    if os.path.exists(backtest_script):
+        subprocess.run([sys.executable, backtest_script], cwd=ROOT)
+
+    print('\n' + '=' * 50)
+    print('  生成持仓报告...')
+    print('=' * 50)
+    pos_script = os.path.join(ROOT, 'build_daily_positions.py')
+    if os.path.exists(pos_script):
+        subprocess.run([sys.executable, pos_script], cwd=ROOT)
+
+# ========== 主入口 ==========
+
+def main():
+    only_sync = '--sync-only' in sys.argv
+    only_pipeline = '--pipeline' in sys.argv
+
+    # 日志记录
+    log_path = os.path.join(ROOT, f'auto_update_{datetime.now().strftime("%Y%m%d")}.log')
+    log_file = open(log_path, 'w', encoding='utf-8')
+
+    def log(msg=''):
+        print(msg)
+        log_file.write(msg + '\n')
+        log_file.flush()
+
+    log('=' * 50)
+    log(f'自动更新: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}')
+    log('=' * 50)
+
+    if only_pipeline:
+        log('只运行管道...')
+        run_pipeline()
+        log('\n完成!')
+        log_file.close()
+        return
+
+    if only_sync:
+        log('从工具目录同步...')
+        n = sync_from_tool()
+        log(f'\n同步 {n} 篇新文章')
+        if n > 0:
+            run_pipeline()
+        log('\n完成!')
+        log_file.close()
+        return
+        print('只运行管道...')
+        run_pipeline()
+        print('\n完成!')
+        return
+
+    if only_sync:
+        print('从工具目录同步...')
+        n = sync_from_tool()
+        print(f'\n同步 {n} 篇新文章')
+        if n > 0:
+            run_pipeline()
+        print('\n完成!')
+        return
+
+    # 1. 先同步工具目录
+    log('=== 步骤1: 同步工具目录 ===')
+    n = sync_from_tool()
+    log(f'工具目录同步: {n} 篇')
+
+    # 2. 再用浏览器下载最新
+    log('\n=== 步骤2: 浏览器下载最新文章 ===')
+    log('(浏览器窗口会自动弹出，扫码登录后自动下载)')
+    try:
+        new_count = asyncio.run(run_browser_download())
+        log(f'\n浏览器下载: {new_count} 篇')
+    except ImportError:
+        log('Playwright 未安装，跳过浏览器下载')
+        log('安装: pip install playwright && python -m playwright install chromium')
+        new_count = 0
+    except Exception as e:
+        log(f'浏览器下载异常: {e}')
+        new_count = 0
+
+    # 3. 运行管道
+    if n > 0 or new_count > 0 or only_pipeline:
+        log('\n=== 步骤3: 运行管道 ===')
+        run_pipeline()
+
+    log(f'\n完成! 更新 {n + new_count} 篇')
+    log_file.close()
+
+
+if __name__ == '__main__':
+    main()
