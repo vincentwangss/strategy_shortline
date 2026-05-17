@@ -403,6 +403,94 @@ def git_push(filepath):
         print(f'  [git] 错误: {e}')
 
 
+def git_push_with_msg(filepath, msg):
+    """提交并推送指定文件到git，自定义提交信息"""
+    repo = ROOT
+    try:
+        subprocess.run(['git', 'add', filepath], cwd=repo, capture_output=True)
+        result = subprocess.run(
+            ['git', 'commit', '-m', msg],
+            cwd=repo, capture_output=True, text=True
+        )
+        if 'nothing to commit' in result.stdout or 'nothing to commit' in result.stderr:
+            print('  [git] 无变更需要提交')
+            return
+        subprocess.run(['git', 'push'], cwd=repo, capture_output=True)
+        print(f'  [git] 已推送 {os.path.basename(filepath)}')
+    except Exception as e:
+        print(f'  [git] 错误: {e}')
+
+
+# ========== 生成重点摘要 ==========
+
+def generate_keypoints():
+    """从最新文章中提取提及主线的段落"""
+    from bs4 import BeautifulSoup
+    import glob
+    from datetime import timedelta
+
+    today = datetime.now()
+    dates_to_check = [(today - timedelta(days=i)).strftime('%Y%m%d') for i in range(3)]
+
+    keypoints = []
+    for dirname in ['短线杰哥擒龙', '杰哥擒龙收评']:
+        base = os.path.join(ROOT, dirname)
+        if not os.path.exists(base):
+            continue
+        for f in sorted(glob.glob(os.path.join(base, '*.html'))):
+            fname = os.path.basename(f)
+            if not any(d in fname for d in dates_to_check):
+                continue
+            with open(f, 'r', encoding='utf-8') as fh:
+                html = fh.read()
+            soup = BeautifulSoup(html, 'html.parser')
+            content = soup.find('div', class_='rich_media_content') or soup.find(id='js_content')
+            if not content:
+                continue
+            text = content.get_text(separator='\n', strip=True)
+
+            title = ''
+            og_title = soup.find('meta', property='og:title')
+            if og_title and og_title.get('content'):
+                title = og_title['content'].strip()
+            if not title:
+                h1 = soup.find('h1')
+                if h1:
+                    title = h1.get_text().strip()
+
+            lines = text.split('\n')
+            for i, line in enumerate(lines):
+                if '主线' in line:
+                    start = max(0, i - 1)
+                    end = min(len(lines), i + 2)
+                    excerpt = '\n'.join(lines[start:end]).strip()
+                    if len(excerpt) > 10:
+                        keypoints.append({
+                            'account': dirname,
+                            'title': title or fname,
+                            'excerpt': excerpt,
+                        })
+                    break
+
+    date_compact = today.strftime('%Y%m%d')
+    path = os.path.join(ROOT, f'{date_compact}.重点.txt')
+
+    with open(path, 'w', encoding='utf-8') as f:
+        f.write(f'# {today.strftime("%Y-%m-%d")} 主线梳理\n')
+        f.write(f'# 提取自最近3天公众号文章\n')
+        f.write('\n')
+        if not keypoints:
+            f.write('最近3天文章未提及"主线"\n')
+        else:
+            for kp in keypoints:
+                f.write(f'## [{kp["account"]}] {kp["title"]}\n')
+                f.write(f'{kp["excerpt"]}\n')
+                f.write('\n')
+
+    print(f'  [重点] 已生成 {os.path.basename(path)} ({len(keypoints)}条主线提及)')
+    return path
+
+
 # ========== 管道 ==========
 
 def run_pipeline():
@@ -433,6 +521,14 @@ def run_pipeline():
     stocklist_path = generate_stocklist()
     if stocklist_path:
         git_push(stocklist_path)
+
+    print('\n' + '=' * 50)
+    print('  提取主线要点 + 推送git...')
+    print('=' * 50)
+    keypoints_path = generate_keypoints()
+    if keypoints_path:
+        date_str = datetime.now().strftime('%Y%m%d')
+        git_push_with_msg(keypoints_path, f'每日更新: {date_str} 主线梳理')
 
 
 # ========== 主入口 ==========
