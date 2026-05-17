@@ -319,6 +319,23 @@ def strategy_score(ctx):
 
 # ========== 生成stocklist ==========
 
+def filter_by_keywords(signals, keywords, max_per_day=3):
+    """按关键词过滤信号+策略评分排序，每日最多max_per_day只"""
+    filtered = [s for s in signals if any(kw in s['context'] for kw in keywords)]
+    from collections import OrderedDict
+    daily = OrderedDict()
+    for s in filtered:
+        daily.setdefault(s['date'], []).append(s)
+    result = []
+    for date in sorted(daily):
+        day_signals = daily[date]
+        scored = [(strategy_score(s['context']), s) for s in day_signals]
+        scored.sort(key=lambda x: -x[0])
+        for score, s in scored[:max_per_day]:
+            result.append((score, s))
+    return result
+
+
 def generate_stocklist():
     """从最新信号生成stocklist文件"""
     signals_path = os.path.join(ROOT, 'stock_signals.json')
@@ -336,9 +353,14 @@ def generate_stocklist():
     fan_markers = ['杰哥，', '杰哥：', '杰哥、', '杰哥:', '请教', '请问', '杰哥你好', '杰哥好']
     non_fan = [s for s in today_signals if not any(m in s['context'] for m in fan_markers)]
 
+    # 基准策略：全量信号评分排序 top 5
     scored = [(strategy_score(s['context']), s) for s in non_fan]
     scored.sort(key=lambda x: -x[0])
     selected = scored[:5]
+
+    # 子策略：反核、趋势主升
+    fan_he = filter_by_keywords(non_fan, ['反核', '分歧低吸', '核按钮'], max_per_day=3)
+    qu_shi = filter_by_keywords(non_fan, ['趋势', '主升', '走强'], max_per_day=3)
 
     # 评分关键词映射
     score_keywords = {
@@ -347,6 +369,27 @@ def generate_stocklist():
         1: ['去弱存强', '切核心', '聚焦核心', '修复', '回暖', '企稳', '分歧', '冰点'],
     }
 
+    def write_stock(f, score, s):
+        ctx = s['context']
+        matched = []
+        for pts, kws in score_keywords.items():
+            for kw in kws:
+                if kw in ctx:
+                    matched.append(kw)
+                    break
+        name = s['stock_name']
+        idx = ctx.find(name)
+        if idx >= 0:
+            start = max(0, idx - 15)
+            end = min(len(ctx), idx + len(name) + 40)
+            reason = ctx[start:end].replace('\n', ' ')
+        else:
+            reason = ctx[:60].replace('\n', ' ')
+        kw_str = f' [{",".join(matched)}]' if matched else ''
+        f.write(f'{s["stock_code"]} {s["stock_name"]}  评分:{score}{kw_str}\n')
+        f.write(f'    理由: {reason}\n')
+        f.write('\n')
+
     date_compact = latest_date.replace('-', '')
     stocklist_path = os.path.join(ROOT, f'{date_compact}.stocklist')
     with open(stocklist_path, 'w', encoding='utf-8') as f:
@@ -354,33 +397,26 @@ def generate_stocklist():
         f.write('# 策略: 隔日超短+止损-5%（实算-6%）\n')
         f.write('# 评分规则: 龙头核心+3 买入信号+2 修复分歧+1 弱势风险-2\n')
         f.write('\n')
-        for rank, (score, s) in enumerate(selected, 1):
-            ctx = s['context']
 
-            # 提取触发评分的关键词
-            matched = []
-            for pts, kws in score_keywords.items():
-                for kw in kws:
-                    if kw in ctx:
-                        matched.append(kw)
-                        break  # 每档取一个
+        f.write('## 基准组合（全部信号评分top5）\n')
+        for score, s in selected:
+            write_stock(f, score, s)
 
-            # 提取股票名称附近的上下文作为理由
-            name = s['stock_name']
-            idx = ctx.find(name)
-            if idx >= 0:
-                start = max(0, idx - 15)
-                end = min(len(ctx), idx + len(name) + 40)
-                reason = ctx[start:end].replace('\n', ' ')
-            else:
-                reason = ctx[:60].replace('\n', ' ')
+        f.write('## 反核组合（反核/分歧低吸）\n')
+        if fan_he:
+            for score, s in fan_he:
+                write_stock(f, score, s)
+        else:
+            f.write('今日无反核信号\n\n')
 
-            kw_str = f' [{",".join(matched)}]' if matched else ''
-            f.write(f'{s["stock_code"]} {s["stock_name"]}  评分:{score}{kw_str}\n')
-            f.write(f'    理由: {reason}\n')
-            f.write('\n')
+        f.write('## 趋势主升组合（趋势/主升/走强）\n')
+        if qu_shi:
+            for score, s in qu_shi:
+                write_stock(f, score, s)
+        else:
+            f.write('今日无趋势主升信号\n\n')
 
-    print(f'  [stocklist] 已生成 {stocklist_path} ({len(selected)}只股票)')
+    print(f'  [stocklist] 已生成 {stocklist_path} (基准{len(selected)}+反核{len(fan_he)}+趋势{len(qu_shi)})')
     return stocklist_path
 
 
