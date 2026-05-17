@@ -1,0 +1,98 @@
+Loaded 5526 stock names
+Building date index from dated articles...
+Indexed 431 dated articles, 1728 stocks
+
+===== Analysing undated files =====
+
+--- 杰哥擒龙收评/收评有主线的日子真好.html
+  Best date: 20221013 (score: 7/11 stocks)
+  Key stocks: ['彩虹集团', '中国软件', '竞业达', '双象股份', '科远智慧', '南天信息', '国脉科技']
+
+--- 杰哥擒龙收评/收评温水煮青蛙难搞.html
+  Best date: 20220830 (score: 6/14 stocks)
+  Key stocks: ['惠博普', '三维化学', '万和电气', '大庆华科', '黑芝麻', '皇氏集团']
+
+--- 杰哥擒龙收评/收评继续轮动无奈挥别神奇.html
+  Best date: 20221116 (score: 13/19 stocks)
+  Key stocks: ['新城控股', '特一药业', '中天服务', '湘财股份', '华森制药', '深桑达A', '以岭药业', '视觉中国']
+
+--- 短线杰哥擒龙/0717复盘科技强兑现弱势重归抱团.html
+  Best date: 20240714 (score: 7/12 stocks)
+  Key stocks: ['英可瑞', '东山精密', '神宇股份', '天迈科技', '锦江在线', '星网宇达', '大众交通']
+
+--- 短线杰哥擒龙/0926复盘主线进一步加强.html
+  Best date: None (score: 0/0 stocks)
+  All stocks in article: []
+  (No overlap with any dated article)
+
+--- 短线杰哥擒龙/1210复盘机器人板块打出韧性.html
+  Best date: 20241213 (score: 23/44 stocks)
+  Key stocks: ['天娱数科', '永辉超市', '柯力传感', '中百集团', '爱仕达', '奋达科技', '建设工业', '赛力斯']
+
+--- 短线杰哥擒龙/周一复盘与周二计划等分歧.html
+  Best date: 20220810 (score: 8/14 stocks)
+  Key stocks: ['大港股份', '华大九天', '鸣志电器', '机器人', '中大力德', '通富微电', '康强电子', '金晶科技']
+
+--- 短线杰哥擒龙/周一盘前计划.html
+  Best date: 20221109 (score: 8/8 stocks)
+  Key stocks: ['特一药业', '天鹅股份', '中国软件', '天地在线', '深桑达A', '以岭药业', '榕基软件', '众生药业']
+
+--- 短线杰哥擒龙/周三复盘与周四计划亏米效应为零.html
+  Best date: 20221116 (score: 4/10 stocks)
+  Key stocks: ['恒大高新', '大连重工', '赣能股份', '佛燃能源']
+
+--- 短线杰哥擒龙/周三复盘与周四计划修复去弱存强.html
+  Best date: 20220824 (score: 8/12 stocks)
+  Key stocks: ['五方光电', '惠威科技', '智光电气', '捷荣技术', '国元证券', '道明光学', '英威腾', '国光电器']
+
+--- 短线杰哥擒龙/周三复盘与周四计划反核.html
+  Best date: 20220817 (score: 6/7 stocks)
+  Key stocks: ['中通客车', '绿康生化', '大港股份', '川润股份', '中京电子', '南方精工']
+
+--- 短线杰哥擒龙/周三复盘与周四计划总该修复下了.html
+  Best date: 20220803 (score: 3/9 stocks)
+  Key stocks: ['天沃科技', '江淮汽车', '金晶科技']
+
+--- 短线杰哥擒龙/周三复盘与周四计划情绪逐渐上升.html
+  Best date: 20220810 (score: 15/17 stocks)
+  Key stocks: ['爱旭股份', '大港股份', '金晶科技', '华大九天', '清源股份', '鸣志电器', '钧达股份', '机器人']
+
+--- 短线杰哥擒龙/周三复盘与周四计划新的一个月要加油.html
+  Best date: 20220909 (score: 4/10 stocks)
+  Key stocks: ['北纬科技', '欢瑞世纪', '德龙汇能', '黑芝麻']
+
+--- 短线杰哥擒龙/周二复盘与周三计划还是轮动.html
+  Best date: 20220810 (score: 11/15 stocks)
+  Key stocks: ['大港股份', '金晶科技', '华大九天', '鸣志电器', '机器人', '中大力德', '晋拓股份', '通富微电']
+
+--- 短线杰哥擒龙/周二复盘与周三计划靴子落地.html
+  Best date: 20220803 (score: 11/13 stocks)
+  Key stocks: ['襄阳轴承', '鸣志电器', '江淮汽车', '机器人', '中大力德', '联诚精密', '秦川机床', '赛象科技']
+
+--- 短线杰哥擒龙/周四复盘与周五计划你相信光吗.html
+  Best date: 20220909 (score: 3/4 stocks)
+  Key stocks: ['保利联合', '欢瑞世纪', '黑芝麻']
+
+--- 短线杰哥擒龙/周四复盘与周五计划核心来回做.html
+  Best date: 20220706 (score: 2/8 stocks)
+  Key stocks: ['赣能股份', '大连重工']
+
+--- 短线杰哥擒龙/周四复盘与周五计划科技新方向.html
+  Best date: 20220810 (score: 6/14 stocks)
+  Key stocks: ['大港股份', '苏州固锝', '通富微电', '康强电子', '日出东方', '金晶科技']
+
+--- 短线杰哥擒龙/周四复盘与周五计划继续反核低吸.html
+  Best date: 20220817 (score: 5/7 stocks)
+  Key stocks: ['宇环数控', '大港股份', '川润股份', '中京电子', '南方精工']
+
+--- 短线杰哥擒龙/周四复盘与周五计划逐步企稳.html
+  Best date: 20220803 (score: 6/12 stocks)
+  Key stocks: ['天沃科技', '鸣志电器', '机器人', '中大力德', '秦川机床', '金晶科技']
+
+--- 短线杰哥擒龙/周末复盘与周一计划修复预期做好去弱存强.html
+  Best date: 20220706 (score: 4/9 stocks)
+  Key stocks: ['赣能股份', '中通客车', '巨轮智能', '大连重工']
+
+--- 短线杰哥擒龙/周末复盘与周一计划弱反弹预期.html
+  Best date: 20220919 (score: 4/9 stocks)
+  Key stocks: ['青岛金王', '南天信息', '美邦服饰', '浙江世宝']

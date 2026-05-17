@@ -1,0 +1,280 @@
+Checking files that might have wrong dates...
+
+  [杰哥擒龙收评] 20211204_周末答疑交流贴.html
+    -> Saturday weekend review, should be 20211203 (Friday)
+  [杰哥擒龙收评] 20211204_周末答疑交流贴.md
+    -> Saturday weekend review, should be 20211203 (Friday)
+  [杰哥擒龙收评] 20220423_周末闲聊打新中签与破发.html
+    -> Saturday weekend review, should be 20220422 (Friday)
+  [杰哥擒龙收评] 20220423_周末闲聊打新中签与破发.md
+    -> Saturday weekend review, should be 20220422 (Friday)
+  [杰哥擒龙收评] 20220423_周末闲聊打新中签与破发_2042.md
+    -> Saturday weekend review, should be 20220422 (Friday)
+  [杰哥擒龙收评] 20220423_周末闲聊打新中签与破发_8615.html
+    -> Saturday weekend review, should be 20220422 (Friday)
+  [杰哥擒龙收评] 20230122_2023必将是收获的一年.html
+    -> Sunday article, unusual
+  [杰哥擒龙收评] 20230122_2023必将是收获的一年.md
+    -> Sunday article, unusual
+  [杰哥擒龙收评] 20230122_2023必将是收获的一年_4564.html
+    -> Sunday article, unusual
+  [杰哥擒龙收评] 20230122_2023必将是收获的一年_7799.md
+    -> Sunday article, unusual
+  [杰哥擒龙收评] 20230806_0806分歧不是坏事依旧坚定主线.html
+    -> Sunday article, unusual
+  [杰哥擒龙收评] 20230806_0806分歧不是坏事依旧坚定主线.md
+    -> Sunday article, unusual
+  [杰哥擒龙收评] 20230806_0806分歧不是坏事依旧坚定主线_3581.md
+    -> Sunday article, unusual
+  [杰哥擒龙收评] 20230806_0806分歧不是坏事依旧坚定主线_3771.html
+    -> Sunday article, unusual
+  [杰哥擒龙收评] 20231203_1203复盘汽车消费内卷低位ai新起.html
+    -> Sunday article, unusual
+  [杰哥擒龙收评] 20231203_1203复盘汽车消费内卷低位ai新起.md
+    -> Sunday article, unusual
+  [杰哥擒龙收评] 20231203_1203复盘汽车消费内卷低位ai新起_0892.md
+    -> Sunday article, unusual
+  [杰哥擒龙收评] 20231203_1203复盘汽车消费内卷低位ai新起_5813.html
+    -> Sunday article, unusual
+  [杰哥擒龙收评] 20240203_0202复盘逆势吃肉一些短线的思考.html
+    -> Saturday non-weekend article, unusual
+  [杰哥擒龙收评] 20240203_0202复盘逆势吃肉一些短线的思考.md
+    -> Saturday non-weekend article, unusual
+  [杰哥擒龙收评] 20240225_明日思路以及春节年度总结视频.html
+    -> Sunday article, unusual
+  [杰哥擒龙收评] 20240225_明日思路以及春节年度总结视频.md
+    -> Sunday article, unusual
+  [杰哥擒龙收评] 20240225_明日思路以及春节年度总结视频_0866.md
+    -> Sunday article, unusual
+  [杰哥擒龙收评] 20240225_明日思路以及春节年度总结视频_5433.html
+    -> Sunday article, unusual
+  [短线杰哥擒龙] 20200321_从可转债市场的幸存者偏差看股市生存之道.html
+    -> Saturday non-weekend article, unusual
+  [短线杰哥擒龙] 20200321_从可转债市场的幸存者偏差看股市生存之道.md
+    -> Saturday non-weekend article, unusual
+  [短线杰哥擒龙] 20210417_周末独家免费福利视频分享一周行情梳理短线经验分享.html
+    -> Saturday weekend review, should be 20210416 (Friday)
+  [短线杰哥擒龙] 20210417_周末独家免费福利视频分享一周行情梳理短线经验分享.md
+    -> Saturday weekend review, should be 20210416 (Friday)
+  [短线杰哥擒龙] 20210711_周末学习视频锂电和稀土板块的细节回顾和未来做法众多干货.html
+    -> Sunday weekend review, should be 20210709 (Friday)
+  [短线杰哥擒龙] 20210711_周末学习视频锂电和稀土板块的细节回顾和未来做法众多干货.md
+    -> Sunday weekend review, should be 20210709 (Friday)
+  [短线杰哥擒龙] 20210904_聊一聊周五的券商和市场聊一聊预判和跟随.html
+    -> Saturday non-weekend article, unusual
+  [短线杰哥擒龙] 20210904_聊一聊周五的券商和市场聊一聊预判和跟随.md
+    -> Saturday non-weekend article, unusual
+  [短线杰哥擒龙] 20211127_大家注意防护相信国家都会好的周末愉快.html
+    -> Saturday weekend review, should be 20211126 (Friday)
+  [短线杰哥擒龙] 20211127_大家注意防护相信国家都会好的周末愉快.md
+    -> Saturday weekend review, should be 20211126 (Friday)
+  [短线杰哥擒龙] 20211204_周末答疑交流贴.html
+    -> Saturday weekend review, should be 20211203 (Friday)
+  [短线杰哥擒龙] 20211204_周末答疑交流贴.md
+    -> Saturday weekend review, should be 20211203 (Friday)
+  [短线杰哥擒龙] 20220326_上海今天挨家挨户抗原检测了好一个全家桶这疫情啥时候是个头呢大家都要注意好防护.html
+    -> Saturday non-weekend article, unusual
+  [短线杰哥擒龙] 20220326_上海今天挨家挨户抗原检测了好一个全家桶这疫情啥时候是个头呢大家都要注意好防护.md
+    -> Saturday non-weekend article, unusual
+  [短线杰哥擒龙] 20220402_哭笑不得.html
+    -> Saturday non-weekend article, unusual
+  [短线杰哥擒龙] 20220402_哭笑不得.md
+    -> Saturday non-weekend article, unusual
+  [短线杰哥擒龙] 20220423_周末闲聊打新中签与破发.html
+    -> Saturday weekend review, should be 20220422 (Friday)
+  [短线杰哥擒龙] 20220423_周末闲聊打新中签与破发.md
+    -> Saturday weekend review, should be 20220422 (Friday)
+  [短线杰哥擒龙] 20220723_周末复盘与周一计划修复预期做好去弱存强.html
+    -> Saturday weekend review, should be 20220722 (Friday)
+  [短线杰哥擒龙] 20220723_周末复盘与周一计划修复预期做好去弱存强.md
+    -> Saturday weekend review, should be 20220722 (Friday)
+  [短线杰哥擒龙] 20220917_周末复盘与周一计划弱反弹预期.html
+    -> Saturday weekend review, should be 20220916 (Friday)
+  [短线杰哥擒龙] 20220917_周末复盘与周一计划弱反弹预期.md
+    -> Saturday weekend review, should be 20220916 (Friday)
+  [短线杰哥擒龙] 20230212_周末内部学习视频人工智能行情梳理周期分析转债技巧以及后市观点.html
+    -> Sunday weekend review, should be 20230210 (Friday)
+  [短线杰哥擒龙] 20230212_周末内部学习视频人工智能行情梳理周期分析转债技巧以及后市观点.md
+    -> Sunday weekend review, should be 20230210 (Friday)
+  [短线杰哥擒龙] 20230212_周末内部学习视频人工智能行情梳理周期分析转债技巧以及后市观点_7880.html
+    -> Sunday weekend review, should be 20230210 (Friday)
+  [短线杰哥擒龙] 20230212_周末内部学习视频人工智能行情梳理周期分析转债技巧以及后市观点_9236.md
+    -> Sunday weekend review, should be 20230210 (Friday)
+  [短线杰哥擒龙] 20230226_周末学习视频最近人工智能行情周期分析连板接力择时分析情绪票与容量票的锚定.html
+    -> Sunday weekend review, should be 20230224 (Friday)
+  [短线杰哥擒龙] 20230226_周末学习视频最近人工智能行情周期分析连板接力择时分析情绪票与容量票的锚定.md
+    -> Sunday weekend review, should be 20230224 (Friday)
+  [短线杰哥擒龙] 20230226_周末学习视频最近人工智能行情周期分析连板接力择时分析情绪票与容量票的锚定_5637.md
+    -> Sunday weekend review, should be 20230224 (Friday)
+  [短线杰哥擒龙] 20230226_周末学习视频最近人工智能行情周期分析连板接力择时分析情绪票与容量票的锚定_8745.html
+    -> Sunday weekend review, should be 20230224 (Friday)
+  [短线杰哥擒龙] 20240623_0623复盘情绪转弱谨慎为上留意业绩品种.html
+    -> Sunday article, unusual
+  [短线杰哥擒龙] 20240623_0623复盘情绪转弱谨慎为上留意业绩品种.md
+    -> Sunday article, unusual
+  [短线杰哥擒龙] 20240630_0630复盘继续消电容量抱团.html
+    -> Sunday article, unusual
+  [短线杰哥擒龙] 20240630_0630复盘继续消电容量抱团.md
+    -> Sunday article, unusual
+  [短线杰哥擒龙] 20240630_0630复盘继续消电容量抱团_0879.md
+    -> Sunday article, unusual
+  [短线杰哥擒龙] 20240630_0630复盘继续消电容量抱团_6857.html
+    -> Sunday article, unusual
+  [短线杰哥擒龙] 20240707_0707复盘继续业绩容量抱团.html
+    -> Sunday article, unusual
+  [短线杰哥擒龙] 20240707_0707复盘继续业绩容量抱团.md
+    -> Sunday article, unusual
+  [短线杰哥擒龙] 20240707_0707复盘继续业绩容量抱团_3752.html
+    -> Sunday article, unusual
+  [短线杰哥擒龙] 20240707_0707复盘继续业绩容量抱团_8269.md
+    -> Sunday article, unusual
+  [短线杰哥擒龙] 20240714_0714复盘继续科技业绩线无人驾驶.html
+    -> Sunday article, unusual
+  [短线杰哥擒龙] 20240714_0714复盘继续科技业绩线无人驾驶.md
+    -> Sunday article, unusual
+  [短线杰哥擒龙] 20240714_0714复盘继续科技业绩线无人驾驶_4540.md
+    -> Sunday article, unusual
+  [短线杰哥擒龙] 20240714_0714复盘继续科技业绩线无人驾驶_9916.html
+    -> Sunday article, unusual
+  [短线杰哥擒龙] 20240810_0809复盘挥别香雪低位重新开始寻龙.html
+    -> Saturday non-weekend article, unusual
+  [短线杰哥擒龙] 20240810_0809复盘挥别香雪低位重新开始寻龙.md
+    -> Saturday non-weekend article, unusual
+  [短线杰哥擒龙] 20240810_0809复盘挥别香雪低位重新开始寻龙_2571.md
+    -> Saturday non-weekend article, unusual
+  [短线杰哥擒龙] 20240810_0809复盘挥别香雪低位重新开始寻龙_5225.html
+    -> Saturday non-weekend article, unusual
+  [短线杰哥擒龙] 20240818_0818复盘辞旧迎新.html
+    -> Sunday article, unusual
+  [短线杰哥擒龙] 20240818_0818复盘辞旧迎新.md
+    -> Sunday article, unusual
+  [短线杰哥擒龙] 20240818_0818复盘辞旧迎新_1519.html
+    -> Sunday article, unusual
+  [短线杰哥擒龙] 20240818_0818复盘辞旧迎新_6575.md
+    -> Sunday article, unusual
+  [短线杰哥擒龙] 20240907_0906复盘5kE的市场终究是抱团的天下.html
+    -> Saturday non-weekend article, unusual
+  [短线杰哥擒龙] 20240907_0906复盘5kE的市场终究是抱团的天下.md
+    -> Saturday non-weekend article, unusual
+  [短线杰哥擒龙] 20240907_0906复盘5kE的市场终究是抱团的天下_1972.html
+    -> Saturday non-weekend article, unusual
+  [短线杰哥擒龙] 20240907_0906复盘5kE的市场终究是抱团的天下_3672.md
+    -> Saturday non-weekend article, unusual
+  [短线杰哥擒龙] 20240922_0922复盘新主线信创网安自主可控.html
+    -> Sunday article, unusual
+  [短线杰哥擒龙] 20240922_0922复盘新主线信创网安自主可控.md
+    -> Sunday article, unusual
+  [短线杰哥擒龙] 20240922_0922复盘新主线信创网安自主可控_2380.md
+    -> Sunday article, unusual
+  [短线杰哥擒龙] 20240922_0922复盘新主线信创网安自主可控_2832.html
+    -> Sunday article, unusual
+  [短线杰哥擒龙] 20240929_周末焦虑吗主升期只干辨识度.html
+    -> Sunday weekend review, should be 20240927 (Friday)
+  [短线杰哥擒龙] 20240929_周末焦虑吗主升期只干辨识度.md
+    -> Sunday weekend review, should be 20240927 (Friday)
+  [短线杰哥擒龙] 20240929_周末焦虑吗主升期只干辨识度_6823.md
+    -> Sunday weekend review, should be 20240927 (Friday)
+  [短线杰哥擒龙] 20240929_周末焦虑吗主升期只干辨识度_7291.html
+    -> Sunday weekend review, should be 20240927 (Friday)
+  [短线杰哥擒龙] 20241012_1011复盘多杀多确实难做继续提利润了.html
+    -> Saturday non-weekend article, unusual
+  [短线杰哥擒龙] 20241012_1011复盘多杀多确实难做继续提利润了.md
+    -> Saturday non-weekend article, unusual
+  [短线杰哥擒龙] 20241109_1109复盘金融不及预期科技轮动上位.html
+    -> Saturday non-weekend article, unusual
+  [短线杰哥擒龙] 20241109_1109复盘金融不及预期科技轮动上位.md
+    -> Saturday non-weekend article, unusual
+  [短线杰哥擒龙] 20241109_1109复盘金融不及预期科技轮动上位_1112.html
+    -> Saturday non-weekend article, unusual
+  [短线杰哥擒龙] 20241109_1109复盘金融不及预期科技轮动上位_1294.md
+    -> Saturday non-weekend article, unusual
+  [短线杰哥擒龙] 20241116_1116复盘取消异动公告解读情绪转折信号.html
+    -> Saturday non-weekend article, unusual
+  [短线杰哥擒龙] 20241116_1116复盘取消异动公告解读情绪转折信号.md
+    -> Saturday non-weekend article, unusual
+  [短线杰哥擒龙] 20241123_1122复盘泥石俱下唯有抱团.html
+    -> Saturday non-weekend article, unusual
+  [短线杰哥擒龙] 20241123_1122复盘泥石俱下唯有抱团.md
+    -> Saturday non-weekend article, unusual
+  [短线杰哥擒龙] 20241201_1201复盘指数救情绪依旧看新方向.html
+    -> Sunday article, unusual
+  [短线杰哥擒龙] 20241201_1201复盘指数救情绪依旧看新方向.md
+    -> Sunday article, unusual
+  [短线杰哥擒龙] 20241201_1201复盘指数救情绪依旧看新方向_2648.html
+    -> Sunday article, unusual
+  [短线杰哥擒龙] 20241201_1201复盘指数救情绪依旧看新方向_4400.md
+    -> Sunday article, unusual
+  [短线杰哥擒龙] 20241208_1208复盘机器人ai双线齐头并进.html
+    -> Sunday article, unusual
+  [短线杰哥擒龙] 20241208_1208复盘机器人ai双线齐头并进.md
+    -> Sunday article, unusual
+  [短线杰哥擒龙] 20241214_1214复盘关键时候多买点量化就来了.html
+    -> Saturday non-weekend article, unusual
+  [短线杰哥擒龙] 20241214_1214复盘关键时候多买点量化就来了.md
+    -> Saturday non-weekend article, unusual
+  [短线杰哥擒龙] 20241221_1220复盘少做纯情绪接力重视核心逻辑.html
+    -> Saturday non-weekend article, unusual
+  [短线杰哥擒龙] 20241221_1220复盘少做纯情绪接力重视核心逻辑.md
+    -> Saturday non-weekend article, unusual
+  [短线杰哥擒龙] 20241229_1229复盘多条线展开跨年博弈.html
+    -> Sunday article, unusual
+  [短线杰哥擒龙] 20241229_1229复盘多条线展开跨年博弈.md
+    -> Sunday article, unusual
+  [短线杰哥擒龙] 20250119_0119复盘消息乱飞依旧是缩量轮动行情.html
+    -> Sunday article, unusual
+  [短线杰哥擒龙] 20250119_0119复盘消息乱飞依旧是缩量轮动行情.md
+    -> Sunday article, unusual
+  [短线杰哥擒龙] 20250125_0125复盘冰点修复最强方向超级大回血.html
+    -> Saturday non-weekend article, unusual
+  [短线杰哥擒龙] 20250125_0125复盘冰点修复最强方向超级大回血.md
+    -> Saturday non-weekend article, unusual
+  [短线杰哥擒龙] 20250126_0126复盘年前最后一战.html
+    -> Sunday article, unusual
+  [短线杰哥擒龙] 20250126_0126复盘年前最后一战.md
+    -> Sunday article, unusual
+  [短线杰哥擒龙] 20250208_0207复盘增量市场趋势为王重视图形审美.html
+    -> Saturday non-weekend article, unusual
+  [短线杰哥擒龙] 20250208_0207复盘增量市场趋势为王重视图形审美.md
+    -> Saturday non-weekend article, unusual
+  [短线杰哥擒龙] 20250222_0221复盘云算力机器人双线并进重视硬逻辑.html
+    -> Saturday non-weekend article, unusual
+  [短线杰哥擒龙] 20250222_0221复盘云算力机器人双线并进重视硬逻辑.md
+    -> Saturday non-weekend article, unusual
+  [短线杰哥擒龙] 20250301_0228复盘月末暴击冰点拿活口.html
+    -> Saturday non-weekend article, unusual
+  [短线杰哥擒龙] 20250301_0228复盘月末暴击冰点拿活口.md
+    -> Saturday non-weekend article, unusual
+  [短线杰哥擒龙] 20250309_0309复盘盘面卷半天周末吹上天.html
+    -> Sunday weekend review, should be 20250307 (Friday)
+  [短线杰哥擒龙] 20250309_0309复盘盘面卷半天周末吹上天.md
+    -> Sunday weekend review, should be 20250307 (Friday)
+  [短线杰哥擒龙] 20250406_0406复盘全球事件下先重视投机.html
+    -> Sunday article, unusual
+  [短线杰哥擒龙] 20250406_0406复盘全球事件下先重视投机.md
+    -> Sunday article, unusual
+  [短线杰哥擒龙] 20250420_0420复盘抱团行情.html
+    -> Sunday article, unusual
+  [短线杰哥擒龙] 20250420_0420复盘抱团行情.md
+    -> Sunday article, unusual
+  [短线杰哥擒龙] 20250511_0511复盘思路一二.html
+    -> Sunday article, unusual
+  [短线杰哥擒龙] 20250511_0511复盘思路一二.md
+    -> Sunday article, unusual
+  [短线杰哥擒龙] 20250525_0525复盘继续谨慎高低切.html
+    -> Sunday article, unusual
+  [短线杰哥擒龙] 20250525_0525复盘继续谨慎高低切.md
+    -> Sunday article, unusual
+  [短线杰哥擒龙] 20260118_0118复盘等待轮动超跌反.html
+    -> Sunday article, unusual
+  [短线杰哥擒龙] 20260118_0118复盘等待轮动超跌反.md
+    -> Sunday article, unusual
+  [短线杰哥擒龙] 20260131_0131复盘航天应用人出门撞见矿难.html
+    -> Saturday non-weekend article, unusual
+  [短线杰哥擒龙] 20260131_0131复盘航天应用人出门撞见矿难.md
+    -> Saturday non-weekend article, unusual
+  [短线杰哥擒龙] 20260208_0208复盘多线各种吹.html
+    -> Sunday article, unusual
+  [短线杰哥擒龙] 20260208_0208复盘多线各种吹.md
+    -> Sunday article, unusual
+
+共 138 个可能日期异常的文件

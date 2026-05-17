@@ -1,0 +1,13 @@
+# 大文件/可生成的文件
+price_data/
+__pycache__/
+*.pyc
+.DS_Store
+
+# 文章源文件（可从公众号下载工具重新获取）
+杰哥擒龙收评/
+短线杰哥擒龙/
+backup_articles/
+
+# 缓存目录
+cache/
