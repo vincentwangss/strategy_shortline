@@ -340,6 +340,13 @@ def generate_stocklist():
     scored.sort(key=lambda x: -x[0])
     selected = scored[:5]
 
+    # 评分关键词映射
+    score_keywords = {
+        3: ['龙头', '核心', '辨识度', '前排', '阵眼', '高标'],
+        2: ['低吸', '关注', '看好', '分歧低吸', '反核', '打板', '弱转强'],
+        1: ['去弱存强', '切核心', '聚焦核心', '修复', '回暖', '企稳', '分歧', '冰点'],
+    }
+
     date_compact = latest_date.replace('-', '')
     stocklist_path = os.path.join(ROOT, f'{date_compact}.stocklist')
     with open(stocklist_path, 'w', encoding='utf-8') as f:
@@ -347,9 +354,31 @@ def generate_stocklist():
         f.write('# 策略: 隔日超短+止损-5%（实算-6%）\n')
         f.write('# 评分规则: 龙头核心+3 买入信号+2 修复分歧+1 弱势风险-2\n')
         f.write('\n')
-        for score, s in selected:
-            brief = s['context'][:30].replace('\n', ' ')
-            f.write(f'{s["stock_code"]} {s["stock_name"]}   评分:{score}  {brief}\n')
+        for rank, (score, s) in enumerate(selected, 1):
+            ctx = s['context']
+
+            # 提取触发评分的关键词
+            matched = []
+            for pts, kws in score_keywords.items():
+                for kw in kws:
+                    if kw in ctx:
+                        matched.append(kw)
+                        break  # 每档取一个
+
+            # 提取股票名称附近的上下文作为理由
+            name = s['stock_name']
+            idx = ctx.find(name)
+            if idx >= 0:
+                start = max(0, idx - 15)
+                end = min(len(ctx), idx + len(name) + 40)
+                reason = ctx[start:end].replace('\n', ' ')
+            else:
+                reason = ctx[:60].replace('\n', ' ')
+
+            kw_str = f' [{",".join(matched)}]' if matched else ''
+            f.write(f'{s["stock_code"]} {s["stock_name"]}  评分:{score}{kw_str}\n')
+            f.write(f'    理由: {reason}\n')
+            f.write('\n')
 
     print(f'  [stocklist] 已生成 {stocklist_path} ({len(selected)}只股票)')
     return stocklist_path
