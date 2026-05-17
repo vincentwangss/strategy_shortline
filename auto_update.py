@@ -293,6 +293,87 @@ def sync_from_tool():
 
     return total
 
+# ========== 策略评分（与run_backtest.py一致） ==========
+
+def strategy_score(ctx):
+    score = 0
+    if any(kw in ctx for kw in ['龙头', '核心', '辨识度', '前排', '阵眼', '总龙头',
+                                  '板块龙头', '补涨龙', '趋势龙头', '高标']):
+        score += 3
+    if any(kw in ctx for kw in ['低吸', '关注', '看好', '分歧低吸', '反核',
+                                  '打板', '回封', '弱转强']):
+        score += 2
+    if any(kw in ctx for kw in ['去弱存强', '切核心', '聚焦核心']):
+        score += 1
+    if any(kw in ctx for kw in ['修复', '回暖', '企稳', '反弹']):
+        score += 1
+    if any(kw in ctx for kw in ['分歧', '冰点']):
+        score += 1
+    if any(kw in ctx for kw in ['跟风', '杂毛', '后排', '补跌', '风险',
+                                  '亏钱效应', 'A杀', '退潮', '出货']):
+        score -= 2
+    if any(kw in ctx for kw in ['卖出', '止损', '出局', '回避']):
+        score -= 1
+    return score
+
+
+# ========== 生成stocklist ==========
+
+def generate_stocklist():
+    """从最新信号生成stocklist文件"""
+    signals_path = os.path.join(ROOT, 'stock_signals.json')
+    if not os.path.exists(signals_path):
+        print('  [stocklist] stock_signals.json 不存在，跳过')
+        return None
+
+    with open(signals_path, 'r', encoding='utf-8') as f:
+        signals = json.load(f)
+
+    dates = sorted(set(s['date'] for s in signals))
+    latest_date = dates[-1]
+    today_signals = [s for s in signals if s['date'] == latest_date]
+
+    fan_markers = ['杰哥，', '杰哥：', '杰哥、', '杰哥:', '请教', '请问', '杰哥你好', '杰哥好']
+    non_fan = [s for s in today_signals if not any(m in s['context'] for m in fan_markers)]
+
+    scored = [(strategy_score(s['context']), s) for s in non_fan]
+    scored.sort(key=lambda x: -x[0])
+    selected = scored[:5]
+
+    date_compact = latest_date.replace('-', '')
+    stocklist_path = os.path.join(ROOT, f'{date_compact}.stocklist')
+    with open(stocklist_path, 'w', encoding='utf-8') as f:
+        f.write(f'# {latest_date} 策略选股组合\n')
+        f.write('# 策略: 隔日超短+止损-5%（实算-6%）\n')
+        f.write('# 评分规则: 龙头核心+3 买入信号+2 修复分歧+1 弱势风险-2\n')
+        f.write('\n')
+        for score, s in selected:
+            brief = s['context'][:30].replace('\n', ' ')
+            f.write(f'{s["stock_code"]} {s["stock_name"]}   评分:{score}  {brief}\n')
+
+    print(f'  [stocklist] 已生成 {stocklist_path} ({len(selected)}只股票)')
+    return stocklist_path
+
+
+def git_push(filepath):
+    """提交并推送指定文件到git"""
+    repo = ROOT
+    try:
+        subprocess.run(['git', 'add', filepath], cwd=repo, capture_output=True)
+        date_str = datetime.now().strftime('%Y%m%d')
+        result = subprocess.run(
+            ['git', 'commit', '-m', f'每日更新: {date_str} 策略选股组合'],
+            cwd=repo, capture_output=True, text=True
+        )
+        if 'nothing to commit' in result.stdout or 'nothing to commit' in result.stderr:
+            print('  [git] 无变更需要提交')
+            return
+        subprocess.run(['git', 'push'], cwd=repo, capture_output=True)
+        print(f'  [git] 已推送 {os.path.basename(filepath)}')
+    except Exception as e:
+        print(f'  [git] 错误: {e}')
+
+
 # ========== 管道 ==========
 
 def run_pipeline():
@@ -316,6 +397,14 @@ def run_pipeline():
     pos_script = os.path.join(ROOT, 'build_daily_positions.py')
     if os.path.exists(pos_script):
         subprocess.run([sys.executable, pos_script], cwd=ROOT)
+
+    print('\n' + '=' * 50)
+    print('  生成stocklist + 推送git...')
+    print('=' * 50)
+    stocklist_path = generate_stocklist()
+    if stocklist_path:
+        git_push(stocklist_path)
+
 
 # ========== 主入口 ==========
 
@@ -347,23 +436,9 @@ def main():
         log('从工具目录同步...')
         n = sync_from_tool()
         log(f'\n同步 {n} 篇新文章')
-        if n > 0:
-            run_pipeline()
+        run_pipeline()
         log('\n完成!')
         log_file.close()
-        return
-        print('只运行管道...')
-        run_pipeline()
-        print('\n完成!')
-        return
-
-    if only_sync:
-        print('从工具目录同步...')
-        n = sync_from_tool()
-        print(f'\n同步 {n} 篇新文章')
-        if n > 0:
-            run_pipeline()
-        print('\n完成!')
         return
 
     # 1. 先同步工具目录
