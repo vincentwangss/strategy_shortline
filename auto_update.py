@@ -496,12 +496,17 @@ def generate_keypoints():
 
             lines = text.split('\n')
             for i, line in enumerate(lines):
-                if '主线' in line or '赚钱效应' in line:
+                if any(kw in line for kw in ['主线', '赚钱效应', '节点']):
                     start = max(0, i - 1)
                     end = min(len(lines), i + 2)
                     excerpt = '\n'.join(lines[start:end]).strip()
                     if len(excerpt) > 10:
-                        tag = '主线' if '主线' in line else '赚钱效应'
+                        if '主线' in line:
+                            tag = '主线'
+                        elif '赚钱效应' in line:
+                            tag = '赚钱效应'
+                        else:
+                            tag = '节点'
                         keypoints.append({
                             'account': dirname,
                             'title': title or fname,
@@ -518,14 +523,14 @@ def generate_keypoints():
         f.write(f'# 提取自最近3天公众号文章\n')
         f.write('\n')
         if not keypoints:
-            f.write('最近3天文章未提及"主线"或"赚钱效应"\n')
+            f.write('最近3天文章未提及"主线"/"赚钱效应"/"节点"\n')
         else:
             for kp in keypoints:
                 f.write(f'## [{kp["tag"]}] [{kp["account"]}] {kp["title"]}\n')
                 f.write(f'{kp["excerpt"]}\n')
                 f.write('\n')
 
-    print(f'  [重点] 已生成 {os.path.basename(path)} ({len(keypoints)}条主线/赚钱效应)')
+    print(f'  [重点] 已生成 {os.path.basename(path)} ({len(keypoints)}条主线/赚钱效应/节点)')
     return path
 
 
