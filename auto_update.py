@@ -293,51 +293,9 @@ def sync_from_tool():
 
     return total
 
-# ========== 策略评分（与run_backtest.py一致） ==========
-
-def strategy_score(ctx):
-    score = 0
-    if any(kw in ctx for kw in ['龙头', '核心', '辨识度', '前排', '阵眼', '总龙头',
-                                  '板块龙头', '补涨龙', '趋势龙头', '高标']):
-        score += 3
-    if any(kw in ctx for kw in ['低吸', '关注', '看好', '分歧低吸', '反核',
-                                  '打板', '回封', '弱转强']):
-        score += 2
-    if any(kw in ctx for kw in ['去弱存强', '切核心', '聚焦核心']):
-        score += 1
-    if any(kw in ctx for kw in ['修复', '回暖', '企稳', '反弹']):
-        score += 1
-    if any(kw in ctx for kw in ['分歧', '冰点']):
-        score += 1
-    if any(kw in ctx for kw in ['跟风', '杂毛', '后排', '补跌', '风险',
-                                  '亏钱效应', 'A杀', '退潮', '出货']):
-        score -= 2
-    if any(kw in ctx for kw in ['卖出', '止损', '出局', '回避']):
-        score -= 1
-    return score
-
-
-# ========== 生成stocklist ==========
-
-def filter_by_keywords(signals, keywords, max_per_day=3):
-    """按关键词过滤信号+策略评分排序，每日最多max_per_day只"""
-    filtered = [s for s in signals if any(kw in s['context'] for kw in keywords)]
-    from collections import OrderedDict
-    daily = OrderedDict()
-    for s in filtered:
-        daily.setdefault(s['date'], []).append(s)
-    result = []
-    for date in sorted(daily):
-        day_signals = daily[date]
-        scored = [(strategy_score(s['context']), s) for s in day_signals]
-        scored.sort(key=lambda x: -x[0])
-        for score, s in scored[:max_per_day]:
-            result.append((score, s))
-    return result
-
 
 def generate_stocklist():
-    """从最新信号生成stocklist文件"""
+    """从最新信号（v2语义引擎）生成stocklist文件"""
     signals_path = os.path.join(ROOT, 'stock_signals.json')
     if not os.path.exists(signals_path):
         print('  [stocklist] stock_signals.json 不存在，跳过')
@@ -346,38 +304,104 @@ def generate_stocklist():
     with open(signals_path, 'r', encoding='utf-8') as f:
         signals = json.load(f)
 
+    # 加载板块信息
+    sector_path = os.path.join(ROOT, 'stock_sector.json')
+    sector_map = {}
+    if os.path.exists(sector_path):
+        with open(sector_path, 'r', encoding='utf-8') as f:
+            raw = json.load(f)
+            for code, info in raw.items():
+                sector_map[code] = info.get('sector', '其他')
+
     dates = sorted(set(s['date'] for s in signals))
     latest_date = dates[-1]
     today_signals = [s for s in signals if s['date'] == latest_date]
 
-    fan_markers = ['杰哥，', '杰哥：', '杰哥、', '杰哥:', '请教', '请问', '杰哥你好', '杰哥好']
-    non_fan = [s for s in today_signals if not any(m in s['context'] for m in fan_markers)]
+    if not today_signals:
+        print(f'  [stocklist] {latest_date} 无信号')
+        return None
 
-    # 基准策略：全量信号评分排序 top 5
-    scored = [(strategy_score(s['context']), s) for s in non_fan]
-    scored.sort(key=lambda x: -x[0])
-    selected = scored[:5]
-
-    # 子策略：反核、趋势主升
-    fan_he = filter_by_keywords(non_fan, ['反核', '分歧低吸', '核按钮'], max_per_day=3)
-    qu_shi = filter_by_keywords(non_fan, ['趋势', '主升', '走强'], max_per_day=3)
-
-    # 评分关键词映射
-    score_keywords = {
-        3: ['龙头', '核心', '辨识度', '前排', '阵眼', '高标'],
-        2: ['低吸', '关注', '看好', '分歧低吸', '反核', '打板', '弱转强'],
-        1: ['去弱存强', '切核心', '聚焦核心', '修复', '回暖', '企稳', '分歧', '冰点'],
+    # ── 角色优先级（原则：龙头战法、去弱存强） ──
+    ROLE_PRIORITY = {
+        '总龙头': 5, '板块龙头': 4, '核心辨识度': 3,
+        '补涨': 2, '跟风': 1, '普通': 0,
     }
 
-    def write_stock(f, score, s):
-        ctx = s['context']
-        matched = []
-        for pts, kws in score_keywords.items():
-            for kw in kws:
-                if kw in ctx:
-                    matched.append(kw)
+    def score_signal(s):
+        """综合评分 = 角色优先级×100 + 信心度"""
+        role_priority = ROLE_PRIORITY.get(s.get('role', '普通'), 0)
+        conviction = s.get('conviction', 0)
+        return role_priority * 100 + conviction
+
+    # 给每个信号打分
+    for s in today_signals:
+        s['_score'] = score_signal(s)
+
+    # ── 分层选股（原则：题材轮动、板块分散） ──
+    def pick_diversified(signals, max_picks=5):
+        """板块分散选股：先按板块挑最好的，再按分数补满"""
+        # 按板块分组
+        by_sector = {}
+        for s in signals:
+            code = s['stock_code']
+            sector = sector_map.get(code, '其他')
+            by_sector.setdefault(sector, []).append(s)
+
+        # 每个板块只取最好的
+        sector_best = []
+        for sector, sigs in by_sector.items():
+            best = max(sigs, key=lambda x: x['_score'])
+            sector_best.append(best)
+
+        # 按总分降序排列
+        sector_best.sort(key=lambda x: -x['_score'])
+
+        # 先确保每个板块最多1只
+        selected = []
+        used_sectors = set()
+        for s in sector_best:
+            sector = sector_map.get(s['stock_code'], '其他')
+            if sector not in used_sectors and len(selected) < max_picks:
+                selected.append(s)
+                used_sectors.add(sector)
+
+        # 如果还不够5只，从剩余信号中补信心度最高的
+        if len(selected) < max_picks:
+            remaining = [s for s in signals if s not in selected]
+            remaining.sort(key=lambda x: -x['_score'])
+            for s in remaining:
+                if len(selected) >= max_picks:
                     break
+                selected.append(s)
+
+        return selected
+
+    selected = pick_diversified(today_signals, max_picks=5)
+
+    # 子策略筛选
+    fan_he = [s for s in today_signals if s.get('conviction', 0) > 0 and
+              any(kw in s.get('context', '') for kw in ['反核', '分歧低吸', '核按钮'])]
+    qu_shi = [s for s in today_signals if s.get('conviction', 0) > 0 and
+              any(kw in s.get('context', '') for kw in ['趋势', '主升', '走强'])]
+
+    # 角色标签映射
+    role_labels = {
+        '总龙头': '⭐总龙头',
+        '板块龙头': '龙头',
+        '核心辨识度': '核心',
+        '补涨': '补涨',
+        '跟风': '⚠跟风',
+    }
+
+    def write_stock(f, s):
+        ctx = s.get('context', '')
         name = s['stock_name']
+        role = s.get('role', '普通')
+        role_label = role_labels.get(role, '')
+        phase = s.get('phase', '')
+        conviction = s.get('conviction', 0)
+
+        # 提取合理的理由
         idx = ctx.find(name)
         if idx >= 0:
             start = max(0, idx - 15)
@@ -385,34 +409,41 @@ def generate_stocklist():
             reason = ctx[start:end].replace('\n', ' ')
         else:
             reason = ctx[:60].replace('\n', ' ')
-        kw_str = f' [{",".join(matched)}]' if matched else ''
-        f.write(f'{s["stock_code"]} {s["stock_name"]}  评分:{score}{kw_str}\n')
+
+        role_str = f' [{role_label}]' if role_label else ''
+        sector = sector_map.get(s['stock_code'], '')
+        sector_str = f' ({sector})' if sector else ''
+        phase_str = f' | {phase}期' if phase else ''
+        f.write(f'{s["stock_code"]} {s["stock_name"]}  信心度:{conviction}{role_str}{sector_str}{phase_str}\n')
         f.write(f'    理由: {reason}\n')
         f.write('\n')
 
     date_compact = latest_date.replace('-', '')
     stocklist_path = os.path.join(ROOT, f'{date_compact}.stocklist')
     with open(stocklist_path, 'w', encoding='utf-8') as f:
-        f.write(f'# {latest_date} 策略选股组合\n')
-        f.write('# 策略: 隔日超短+止损-5%（实算-6%）\n')
-        f.write('# 评分规则: 龙头核心+3 买入信号+2 修复分歧+1 弱势风险-2\n')
+        phase_info = today_signals[0].get('phase', '震荡') if today_signals else '未知'
+        f.write(f'# {latest_date} 策略选股组合（v2语义引擎）\n')
+        f.write('# 策略: 隔日超短+止损-5%（实算按实际价格）\n')
+        f.write('# 原则: 龙头战法+题材轮动+板块分散\n')
         f.write('\n')
 
-        f.write('## 基准组合（全部信号评分top5）\n')
-        for score, s in selected:
-            write_stock(f, score, s)
+        f.write(f'## 今日情绪周期: {phase_info}\n\n')
 
-        f.write('## 反核组合（反核/分歧低吸）\n')
+        f.write('## 基准组合（板块分散×龙头优先）\n')
+        for s in selected:
+            write_stock(f, s)
+
+        f.write('## 反核组合\n')
         if fan_he:
-            for score, s in fan_he:
-                write_stock(f, score, s)
+            for s in fan_he[:3]:
+                write_stock(f, s)
         else:
             f.write('今日无反核信号\n\n')
 
-        f.write('## 趋势主升组合（趋势/主升/走强）\n')
+        f.write('## 趋势主升组合\n')
         if qu_shi:
-            for score, s in qu_shi:
-                write_stock(f, score, s)
+            for s in qu_shi[:3]:
+                write_stock(f, s)
         else:
             f.write('今日无趋势主升信号\n\n')
 
@@ -538,16 +569,16 @@ def generate_keypoints():
 
 def run_pipeline():
     print('\n' + '=' * 50)
-    print('  提取信号...')
+    print('  语义信号引擎 v2...')
     print('=' * 50)
-    extract_script = os.path.join(ROOT, 'extract_signals.py')
-    if os.path.exists(extract_script):
-        subprocess.run([sys.executable, extract_script], cwd=ROOT)
+    engine_script = os.path.join(ROOT, 'signal_engine.py')
+    if os.path.exists(engine_script):
+        subprocess.run([sys.executable, engine_script], cwd=ROOT)
 
     print('\n' + '=' * 50)
-    print('  运行回测...')
+    print('  运行回测 v2（基于投资原则）...')
     print('=' * 50)
-    backtest_script = os.path.join(ROOT, 'run_backtest.py')
+    backtest_script = os.path.join(ROOT, 'run_backtest_v2.py')
     if os.path.exists(backtest_script):
         subprocess.run([sys.executable, backtest_script], cwd=ROOT)
 
